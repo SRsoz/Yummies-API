@@ -16,7 +16,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         const existingUser = await User.findOne({ email });
         if (existingUser) {
             res.status(400).json({ message: 'Email already in use' });
-            return 
+            return
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -27,7 +27,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
         return
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
-        return 
+        return
     }
 };
 
@@ -42,11 +42,21 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
             return
         }
 
+        const JWT_SECRET = process.env.JWT_SECRET || "defaultSecret";
+        console.log("JWT_SECRET:", JWT_SECRET);
+
+        if (!process.env.JWT_SECRET) {
+            console.error("JWT_SECRET is missing, check your .env file.");
+            res.status(500).json({ message: "Server error" });
+            return;
+        }
+
         const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ token });
         return
     } catch (error) {
-        res.status(500).json({ message: 'Server error', error });
+        console.error("Login error:", error);
+        res.status(500).json({ message: "Server error" });
         return
     }
 };
