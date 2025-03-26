@@ -6,7 +6,12 @@ interface IRecipe extends Document {
   instructions: string;
   image?: string;
   createdAt: Date;
-  author: mongoose.Types.ObjectId;
+  author?: mongoose.Types.ObjectId;
+  userId:{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
+    require: true
+  }
 }
 
 const recipeSchema = new mongoose.Schema<IRecipe>({

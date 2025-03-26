@@ -61,7 +61,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// Get all users (admin only)
+// Get all users
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
         const users = await User.find().select('-password');
