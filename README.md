@@ -1,4 +1,4 @@
-# Yumcraft
+# Yummies
 Yumcraft is a rest-API where users can find different dishes and recipes for them.
 
 ## Object modelling
