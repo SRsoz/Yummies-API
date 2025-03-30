@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/user';
+import { AuthRequest } from '../middleware/authMiddleware';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -89,5 +90,50 @@ export const deleteUser = async (req: Request, res: Response): Promise<void> => 
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
         return
+    }
+};
+
+// Update a user (Admin can update any user, users can update themselves)
+export const updateUser = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { id } = req.params; // Get user ID from URL
+        const { username, email, password } = req.body;
+        const requester = (req as AuthRequest).user; // Explicitly cast req to AuthRequest to ensure user exists
+
+          // Ensure requester is defined
+          if (!requester) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
+        }
+
+        // Check if the requester is an admin or if the user is updating their own profile
+        if (requester.role !== "admin" && requester.id !== id) {
+            res.status(403).json({ message: "Access denied" });
+            return;
+        }
+
+        // Find user by ID
+        const user = await User.findById(id);
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        //  // Update user details
+        if (username) user.username = username;
+        if (email) user.email = email;
+        if (password) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user.password = hashedPassword;
+        }
+
+        // Save updated user
+        await user.save();
+
+        res.json({ message: "User updated successfully", user });
+        return;
+    } catch (error) {
+        res.status(500).json({ message: "Server error", error });
+        return;
     }
 };
