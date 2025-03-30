@@ -12,9 +12,11 @@ const JWT_SECRET = process.env.JWT_SECRET as string;
 // Register a new user
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
+
         const { username, email, password } = req.body;
 
         const existingUser = await User.findOne({ email });
+        
         if (existingUser) {
             res.status(400).json({ message: 'Email already in use' });
             return
@@ -77,13 +79,29 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
 // Delete a user
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { id } = req.params;
-        const user = await User.findByIdAndDelete(id);
+        const { id } = req.params; // The users ID who should be deleted
+        const requester = (req as AuthRequest).user; // The user who does the call
 
-        if (!user) {
-            res.status(404).json({ message: 'User not found' });
-            return
+        // Check that requester is defined
+        if (!requester) {
+            res.status(401).json({ message: "Unauthorized" });
+            return;
         }
+
+        // Only admin or the user themselves can delete the account.
+        if (requester.role !== "admin" && requester.id !== id) {
+            res.status(403).json({ message: "Access denied" });
+            return;
+        }
+
+        // Check that the user exists before deleting
+        const user = await User.findById(id);
+        if (!user) {
+            res.status(404).json({ message: "User not found" });
+            return;
+        }
+
+        await user.deleteOne(); // Delete user
 
         res.json({ message: 'User deleted successfully' });
         return
@@ -100,8 +118,8 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
         const { username, email, password } = req.body;
         const requester = (req as AuthRequest).user; // Explicitly cast req to AuthRequest to ensure user exists
 
-          // Ensure requester is defined
-          if (!requester) {
+        // Ensure requester is defined
+        if (!requester) {
             res.status(401).json({ message: "Unauthorized" });
             return;
         }
