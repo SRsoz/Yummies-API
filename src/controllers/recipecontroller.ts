@@ -1,5 +1,12 @@
 import { Request, Response } from "express";
 import { Recipe } from "../models/recipe";
+import mongoose from "mongoose";
+
+declare module "express-serve-static-core" {
+    interface Request {
+        user?: string; 
+    }
+}
 
 // Get all recipes
 export const getRecipes = async (req: Request, res: Response): Promise<void> => {
@@ -33,7 +40,8 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
 export const createRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
         const { title, ingredients, instructions } = req.body;
-        const newRecipe = new Recipe({ title, ingredients, instructions });
+        const userId= req.user;
+        const newRecipe = new Recipe({ title, ingredients, instructions, userId });
         await newRecipe.save();
         res.status(201).json(newRecipe);
         return
@@ -46,6 +54,12 @@ export const createRecipe = async (req: Request, res: Response): Promise<void> =
 // Update a recipe
 export const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
+        const userId= req.user;
+        const recipe= await Recipe.findById(req.params.id).exec();
+        if (!recipe || !userId || recipe!.userId.toString() !== userId) {
+            res.status(401).json({ message: 'Not authorized to update recipe' });
+            return
+        }
         const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
         if (!updatedRecipe) {
