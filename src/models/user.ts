@@ -4,7 +4,7 @@ interface IUser extends Document {
   username: string;
   email: string;
   password: string;
-  role: string; // <-- Added role field
+  role: "user" | "admin"; // <-- Added role field
   createdAt: Date;
 }
 
