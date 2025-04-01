@@ -9,7 +9,7 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET as string;
 
-// Register a new user
+// Register a new user, created account with hashed password
 export const registerUser = async (req: Request, res: Response): Promise<void> => {
     try {
 
@@ -17,6 +17,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
         const existingUser = await User.findOne({ email });
         
+        // If email is already registered, return 400
         if (existingUser) {
             res.status(400).json({ message: 'Email already in use' });
             return
@@ -34,12 +35,13 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
     }
 };
 
-// Login user
+// Login user. Authenticate user and return a JWT token
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { email, password } = req.body;
         const user = await User.findOne({ email });
 
+        // Check if user exists and password is correct
         if (!user || !(await bcrypt.compare(password, user.password))) {
             res.status(401).json({ message: 'Could not authenticate' });
             return
@@ -49,7 +51,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         console.log("JWT_SECRET:", JWT_SECRET);
 
         if (!process.env.JWT_SECRET) {
-            console.error("JWT_SECRET is missing, check your .env file.");
+            console.error("JWT_SECRET is missing, check .env file.");
             res.status(500).json({ message: "Server error" });
             return;
         }
@@ -64,7 +66,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
-// Get all users
+// Get all users from the database, excluding passwords
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
     try {
         const users = await User.find().select('-password');
@@ -76,13 +78,13 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
     }
 };
 
-// Delete a user
+//  Delete a user (only admin or the user themselves can delete an account)
 export const deleteUser = async (req: Request, res: Response): Promise<void> => {
     try {
         const { id } = req.params; // The users ID who should be deleted
         const requester = (req as AuthRequest).user; // The user who does the call
 
-        // Check that requester is defined
+        // Check that requester exists
         if (!requester) {
             res.status(401).json({ message: "Unauthorized" });
             return;
@@ -116,15 +118,16 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
     try {
         const { id } = req.params; // Get user ID from URL
         const { username, email, password } = req.body;
-        const requester = (req as AuthRequest).user; // Explicitly cast req to AuthRequest to ensure user exists
+        const requester = (req as AuthRequest).user; // Get the authenticated user
 
-        // Ensure requester is defined
+
+        // Ensure requester exists
         if (!requester) {
             res.status(401).json({ message: "Unauthorized" });
             return;
         }
 
-        // Check if the requester is an admin or if the user is updating their own profile
+        // Check if the requester is an admin or if the user is updating their own account
         if (requester.role !== "admin" && requester.id !== id) {
             res.status(403).json({ message: "Access denied" });
             return;
@@ -137,7 +140,7 @@ export const updateUser = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        //  // Update user details
+        //  // Update user details if provided
         if (username) user.username = username;
         if (email) user.email = email;
         if (password) {
