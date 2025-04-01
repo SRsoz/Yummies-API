@@ -41,7 +41,6 @@ export const createRecipe = async (req: Request, res: Response): Promise<void> =
     try {
         const { title, ingredients, instructions } = req.body;
         const userId= req.user?.id;
-        console.log(userId)
         const newRecipe = new Recipe({ title, ingredients, instructions, userId });
         await newRecipe.save();
         res.status(201).json(newRecipe);
