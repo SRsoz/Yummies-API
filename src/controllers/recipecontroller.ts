@@ -8,7 +8,7 @@ declare module "express-serve-static-core" {
     }
 }
 
-// Get all recipes
+// Get all recipes from the database 
 export const getRecipes = async (req: Request, res: Response): Promise<void> => {
     try {
         const recipes = await Recipe.find();
@@ -20,10 +20,12 @@ export const getRecipes = async (req: Request, res: Response): Promise<void> => 
     }
 };
 
-// Get recipe by ID
+// Get specific recipe by ID
 export const getRecipeById = async (req: Request, res: Response): Promise<void> => {
     try {
         const recipe = await Recipe.findById(req.params.id);
+
+        // If recipe is not found, return 404
         if (!recipe) {
             res.status(404).json({ message: "Recipe not found" });
             return
@@ -36,7 +38,7 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
     }
 };
 
-// Create new recipe
+// Create new recipe and sace it in the database
 export const createRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
         const { title, ingredients, instructions } = req.body;
@@ -51,17 +53,21 @@ export const createRecipe = async (req: Request, res: Response): Promise<void> =
     }
 };
 
-// Update a recipe
+// Update a existing recipe if the user is authorized
 export const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
         const userId= req.user?.id;
         const recipe= await Recipe.findById(req.params.id).exec();
+
+        // Check if recipe exists and if the user is authorized to update it
         if (!recipe || !userId || recipe!.userId.toString() !== userId) {
             res.status(401).json({ message: 'Not authorized to update recipe' });
             return
         }
+
         const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
+        // If the recipe doesn't exist, return 404
         if (!updatedRecipe) {
             res.status(404).json({ message: "Recipe not found" });
             return
@@ -75,11 +81,12 @@ export const updateRecipe = async (req: Request, res: Response): Promise<void> =
     }
 };
 
-// Delete a recipe
+// Delete a recipe by its ID
 export const deleteRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
         const recipe = await Recipe.findByIdAndDelete(req.params.id);
 
+        // If the recipe is not found, return 404
         if (!recipe) {
             res.status(404).json({ message: "Recipe not found" });
             return
