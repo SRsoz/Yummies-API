@@ -6,7 +6,6 @@ interface IRecipe extends Document {
   ingredients: string[];
   instructions: string;
   createdAt: Date;
-  author?: mongoose.Types.ObjectId;
   userId:{ // Reference to the user who created the recipe
     type: mongoose.Schema.Types.ObjectId,
     ref: "user",
