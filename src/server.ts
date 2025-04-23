@@ -14,12 +14,12 @@ dotenv.config();
 const app = express();
 
 // Enable CORS with specific configuration for frontend requests
-app.use(cors(
-    {
-        origin: ["http://localhost:3000", "http://localhost:5173/"], // Allow requests from the specified origin (frontend)
-        methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific HTTP methods
-    }
-));
+app.use(
+    cors({
+      origin: "*",
+  
+    })
+  );
 
 // Parse incoming requests with JSON payloads
 app.use(express.json());
