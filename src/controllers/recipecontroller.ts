@@ -42,7 +42,7 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
 export const createRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
         const { title, ingredients, instructions } = req.body;
-        const userId= req.user?.id;
+        const userId= req.user?.id || null;
         const newRecipe = new Recipe({ title, ingredients, instructions, userId });
         await newRecipe.save();
         res.status(201).json(newRecipe);
@@ -56,14 +56,15 @@ export const createRecipe = async (req: Request, res: Response): Promise<void> =
 // Update a existing recipe if the user is authorized
 export const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
-        const userId= req.user?.id;
-        const recipe= await Recipe.findById(req.params.id).exec();
 
-        // Check if recipe exists and if the user is authorized to update it
-        if (!recipe || !userId || recipe!.userId.toString() !== userId) {
-            res.status(401).json({ message: 'Not authorized to update recipe' });
-            return
-        }
+        // const userId= req.user?.id;
+        // const recipe= await Recipe.findById(req.params.id).exec();
+
+        // // Check if recipe exists and if the user is authorized to update it
+        // if (!recipe || !userId || recipe!.userId.toString() !== userId) {
+        //     res.status(401).json({ message: 'Not authorized to update recipe' });
+        //     return
+        // }
 
         const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
