@@ -17,6 +17,7 @@ const app = express();
 app.use(cors(
     {
         origin: ["http://localhost:3000", "http://localhost:5173", "http://localhost:4200"], // Allow requests from the specified origin (frontend)
+        credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE"], // Allow specific HTTP methods
     }
 ));
