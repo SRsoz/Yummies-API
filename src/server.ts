@@ -30,7 +30,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/recipes", recipeRoutes);
 
 // Define the port to run the server, default to 5000 if not provided in .env
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Connect to MongoDB using Mongoose
 mongoose

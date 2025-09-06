@@ -41,9 +41,9 @@ export const getRecipeById = async (req: Request, res: Response): Promise<void> 
 // Create new recipe and sace it in the database
 export const createRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { title, ingredients, instructions } = req.body;
+        const { title, ingredients, instructions, image } = req.body;
         const userId= req.user?.id || null;
-        const newRecipe = new Recipe({ title, ingredients, instructions, userId });
+        const newRecipe = new Recipe({ title, ingredients, instructions, image, userId });
         await newRecipe.save();
         res.status(201).json(newRecipe);
         return
@@ -56,17 +56,13 @@ export const createRecipe = async (req: Request, res: Response): Promise<void> =
 // Update a existing recipe if the user is authorized
 export const updateRecipe = async (req: Request, res: Response): Promise<void> => {
     try {
+        const { title, ingredients, instructions, image } = req.body;
 
-        // const userId= req.user?.id;
-        // const recipe= await Recipe.findById(req.params.id).exec();
-
-        // // Check if recipe exists and if the user is authorized to update it
-        // if (!recipe || !userId || recipe!.userId.toString() !== userId) {
-        //     res.status(401).json({ message: 'Not authorized to update recipe' });
-        //     return
-        // }
-
-        const updatedRecipe = await Recipe.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        const updatedRecipe = await Recipe.findByIdAndUpdate(
+            req.params.id, 
+            { title, ingredients, instructions, image }, 
+            { new: true }
+        );
 
         // If the recipe doesn't exist, return 404
         if (!updatedRecipe) {
